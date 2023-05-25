@@ -5,13 +5,13 @@
 [worldserver]
 
 ########################################
-# My module configuration
+# DynamicSockets Configuration
 ########################################
 #
-#    MyModule.Enable
-#        Description: Enable my module and print "Hello World" message at server start
+#    DynamicSockets.Enable
+#        Description: Enable/disable dynamic sockets (some dynamic sockets will still apply stats).
 #        Default:     0 - Disabled
 #                     1 - Enabled
 #
 
-MyModule.Enable = 0
+DynamicSockets.Enable = 0
