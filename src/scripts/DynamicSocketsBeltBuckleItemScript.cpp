@@ -38,8 +38,6 @@ bool DynamicSocketsBeltBucklePlayerScript::CanCastItemUseSpell(Player* player, I
         sDynamicSocketsMgr->HandleApplyEnchantment(player, targetItem, SOCK_ENCHANTMENT_SLOT, false, 0, 0);
     }
 
-    //SendGossipMenuFor(player, 0, item->GetGUID());
-
     LOG_INFO("module", "Used belt buckle item.");
 
     player->DestroyItemCount(item->GetTemplate()->ItemId, 1, true);
