@@ -1,6 +1,7 @@
 #include "DynamicSocketsGameObjectScript.h"
 #include "DynamicSocketsMgr.h"
 
+#include "Config.h"
 #include "Player.h"
 #include <AI/ScriptedAI/ScriptedGossip.h>
 
@@ -40,8 +41,43 @@ bool DynamicSocketsGameObjectScript::OnGossipSelect(Player* player, GameObject* 
             if (sDynamicSocketsMgr->IsEquipmentSlotOccupied(player, slot))
             {
                 hasItems = true;
+                std::string armorIcon = "";
+                std::string itemLink = "";
+                auto item = sDynamicSocketsMgr->GetItemFromSlot(player, slot);
+                if (!item)
+                {
+                    continue;
+                }
 
-                std::string option = Acore::StringFormatFmt("{} {}", sDynamicSocketsMgr->GetIconForCharacterSlot(slot), sDynamicSocketsMgr->GetNameFromCharacterSlot(slot));
+                auto itemProto = item->GetTemplate();
+
+                if(auto displayInfo = sItemDisplayInfoStore.LookupEntry(item->GetTemplate()->DisplayInfoID))
+                {
+                    armorIcon = Acore::StringFormatFmt("|TInterface\\ICONS\\{}:16|t ", displayInfo->inventoryIcon);
+                }
+                itemLink = Acore::StringFormatFmt("{}", sDynamicSocketsMgr->GetItemLink(player, item));
+
+                std::string availableSocketStr = "";
+                auto availableSocket = sDynamicSocketsMgr->GetFreeSocketSlot(player, slot);
+                // No more available sockets, skip..
+                if (availableSocket == MAX_ENCHANTMENT_SLOT)
+                {
+                    continue;
+                }
+                switch (availableSocket)
+                {
+                case SOCK_ENCHANTMENT_SLOT:
+                    availableSocketStr = "|cff00FFA5First Socket|r";
+                    break;
+                case SOCK_ENCHANTMENT_SLOT_2:
+                    availableSocketStr = "|cff003BFFSecond Socket|r";
+                    break;
+                case SOCK_ENCHANTMENT_SLOT_3:
+                    availableSocketStr = "|cffFF002EThird Socket|r";
+                    break;
+                }
+                
+                std::string option = Acore::StringFormatFmt("{} {}|n{}", armorIcon.empty() ? sDynamicSocketsMgr->GetIconForCharacterSlot(slot) : armorIcon, itemLink.empty() ? itemProto->Name1 : itemLink, availableSocketStr);
                 AddGossipItemFor(player, GOSSIP_ICON_CHAT, option, GOSSIP_SENDER_MAIN, MYSTIC_ANVIL_SOCKET_ADD_SELECT_GEMS + slot);
             }
         }
@@ -67,15 +103,31 @@ bool DynamicSocketsGameObjectScript::OnGossipSelect(Player* player, GameObject* 
         auto queue = sDynamicSocketsMgr->GetSocketQueue();
         auto queueItem = queue->Get(player);
         queueItem->Item = player->GetItemByPos(INVENTORY_SLOT_BAG_0, slot);
+        queueItem->Slot = sDynamicSocketsMgr->GetFreeSocketSlot(player, slot);
 
         auto gems = sDynamicSocketsMgr->GetGemsFromInventory(player);
-        auto slicedGems = std::vector<Item*>(gems.begin(), gems.begin() + GOSSIP_MAX_MENU_ITEMS);
-        bool hasGems = !slicedGems.empty();
+        bool hasGems = !gems.empty();
 
         if (hasGems)
         {
-            for (auto gem : slicedGems)
+            uint32 gemCount = 0;
+            for (auto gem : gems)
             {
+                if (!gem)
+                {
+                    continue;
+                }
+
+                // Gossip can only have so many menu items before crashing.
+                if (gemCount >= GOSSIP_MAX_MENU_ITEMS)
+                {
+                    break;
+                }
+                else
+                {
+                    gemCount++;
+                }
+
                 std::string gemIcon = "";
                 if (auto displayInfo = sItemDisplayInfoStore.LookupEntry(gem->GetTemplate()->DisplayInfoID))
                 {
@@ -86,7 +138,7 @@ bool DynamicSocketsGameObjectScript::OnGossipSelect(Player* player, GameObject* 
                 {
                     costIcon = Acore::StringFormatFmt("|TInterface\\ICONS\\{}:16|t ", displayInfo->inventoryIcon);
                 }
-                AddGossipItemFor(player, GOSSIP_ICON_CHAT, Acore::StringFormatFmt("{}{}|n{}x{}", gemIcon, sDynamicSocketsMgr->GetItemLink(player, gem), costIcon, sDynamicSocketsMgr->GetSocketCost(queueItem->Item, gem, SOCK_ENCHANTMENT_SLOT)), GOSSIP_SENDER_MAIN, MYSTIC_ANVIL_SOCKET_ADD_VERIFY + gem->GetSlot());
+                AddGossipItemFor(player, GOSSIP_ICON_CHAT, Acore::StringFormatFmt("{}{}|n{}x{}", gemIcon, sDynamicSocketsMgr->GetItemLink(player, gem), costIcon, sDynamicSocketsMgr->GetSocketCost(queueItem->Item, gem, queueItem->Slot)), GOSSIP_SENDER_MAIN, MYSTIC_ANVIL_SOCKET_ADD_VERIFY + gem->GetSlot());
             }
             SendGossipMenuFor(player, MYSTIC_ANVIL_SOCKET_ADD_SELECT_GEM_TEXT_ID, go->GetGUID());
         }
@@ -110,8 +162,10 @@ bool DynamicSocketsGameObjectScript::OnGossipSelect(Player* player, GameObject* 
 
         auto cost = sDynamicSocketsMgr->GetSocketCost(queueItem->Item, queueItem->Gem, SOCK_ENCHANTMENT_SLOT);
 
-        uint32 currencyId = 37711;
+        uint32 currencyId = sConfigMgr->GetOption<uint32>("DynamicSockets.Cost.CurrencyEntryId", 37711);
         uint32 currencyCount = player->GetItemCount(currencyId);
+
+        auto currencyProto = sObjectMgr->GetItemTemplate(currencyId);
 
         if (currencyCount < cost)
         {
@@ -121,57 +175,40 @@ bool DynamicSocketsGameObjectScript::OnGossipSelect(Player* player, GameObject* 
             return true;
         }
 
-        AddGossipItemFor(player, GOSSIP_ICON_CHAT, "Yes, I am sure.", GOSSIP_SENDER_MAIN, MYSTIC_ANVIL_EXIT, Acore::StringFormatFmt("|cffFF0000This action costs |cffFFFFFF[Big Noodles]x{}|cffFF0000, are you sure you want to do this?|n|n|r{} -> {}", cost, sDynamicSocketsMgr->GetItemLink(player, queueItem->Gem), sDynamicSocketsMgr->GetItemLink(player, queueItem->Item)), 0, false);
+        AddGossipItemFor(player, GOSSIP_ICON_CHAT, "Yes, I am sure.", GOSSIP_SENDER_MAIN, MYSTIC_ANVIL_SOCKET_ADD, Acore::StringFormatFmt("|cffFF0000This action costs |cffFFFFFF[{}]x{}|cffFF0000, are you sure you want to do this?", currencyProto->Name1, cost), 0, false);
         AddGossipItemFor(player, GOSSIP_ICON_CHAT, "I'd like to think it over.", GOSSIP_SENDER_MAIN, MYSTIC_ANVIL_EXIT);
         SendGossipMenuFor(player, MYSTIC_ANVIL_SOCKET_ADD_VERIFY_TEXT_ID, go->GetGUID());
 
         return true;
-        /*
+    }
 
-        auto gems = sDynamicSocketsMgr->GetGemsFromInventory(player);
-        if (gems.empty())
-        {
-            CloseGossipMenuFor(player);
-            LOG_INFO("module", "Found no gems.");
-            return true;
-        }
-        auto gem = gems.at(0);
-        auto item = sDynamicSocketsMgr->GetItemFromSlot(player, slot);
-        if (!item)
-        {
-            CloseGossipMenuFor(player);
-            LOG_INFO("module", "Found no item at slot {}.", slot);
-            return true;
-        }
+    if (action == MYSTIC_ANVIL_SOCKET_ADD)
+    {
+        ClearGossipMenuFor(player);
 
-        if (!sDynamicSocketsMgr->IsEquipmentSlotOccupied(player, slot))
-        {
-            CloseGossipMenuFor(player);
-            LOG_INFO("module", "Failed socket, item not equipped in slot {}.", slot);
-            return true;
-        }
+        auto queue = sDynamicSocketsMgr->GetSocketQueue();
+        auto queueItem = queue->Get(player);
 
-        auto freeSocketSlot = sDynamicSocketsMgr->GetFreeSocketSlot(player, slot);
-        if (freeSocketSlot == MAX_ENCHANTMENT_SLOT)
-        {
-            CloseGossipMenuFor(player);
-            LOG_INFO("module", "Failed socket, no free sockets for slot {}.", slot);
-            return true;
-        }
-
-        bool result = sDynamicSocketsMgr->TrySocketItem(player, item, gem, freeSocketSlot);
+        bool result = sDynamicSocketsMgr->TrySocketItem(player, queueItem->Item, queueItem->Gem, queueItem->Slot);
 
         if (!result)
         {
             CloseGossipMenuFor(player);
-            LOG_INFO("module", "Failed socket, unknown error.", slot);
+            LOG_INFO("module", "Failed socket, unknown error.", queueItem->Slot);
             return true;
         }
 
-        LOG_INFO("module", "Socketing success.", slot);
-        player->DestroyItem(gem->GetBagSlot(), gem->GetSlot(), true);
+        auto cost = sDynamicSocketsMgr->GetSocketCost(queueItem->Item, queueItem->Gem, queueItem->Slot);
 
-        return true;*/
+        uint32 currencyId = sConfigMgr->GetOption<uint32>("DynamicSockets.Cost.CurrencyEntryId", 37711);
+        uint32 currencyCount = player->GetItemCount(currencyId);
+
+        LOG_INFO("module", "Socketing success.", queueItem->Slot);
+        player->DestroyItem(queueItem->Gem->GetBagSlot(), queueItem->Gem->GetSlot(), true);
+        player->DestroyItemCount(currencyId, cost, true);
+
+        AddGossipItemFor(player, GOSSIP_ICON_CHAT, "I would like to socket another item.", GOSSIP_SENDER_MAIN, MYSTIC_ANVIL_SOCKET_ADD_SELECT_SLOT);
+        SendGossipMenuFor(player, MYSTIC_ANVIL_SOCKET_ADD_TEXT_ID, go->GetGUID());
     }
 
     return true;
