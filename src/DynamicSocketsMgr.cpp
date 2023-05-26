@@ -340,6 +340,100 @@ Item* DynamicSocketsManager::GetItemFromSlot(Player* player, uint32 slot)
     return player->GetItemByPos(INVENTORY_SLOT_BAG_0, slot);
 }
 
+std::string DynamicSocketsManager::GetIconForCharacterSlot(uint32 slot)
+{
+    switch (slot)
+    {
+    case CharacterSlot::SLOT_HEAD:
+        return "|TInterface\\PaperDoll\\UI-PaperDoll-Slot-Head:32|t";
+    case CharacterSlot::SLOT_NECK:
+        return "|TInterface\\PaperDoll\\UI-PaperDoll-Slot-Neck:32|t";;
+    case CharacterSlot::SLOT_SHOULDERS:
+        return "|TInterface\\PaperDoll\\UI-PaperDoll-Slot-Shoulder:32|t";
+    case CharacterSlot::SLOT_BACK:
+        return "|TInterface\\PaperDoll\\UI-PaperDoll-Slot-Chest:32|t";
+    case CharacterSlot::SLOT_CHEST:
+        return "|TInterface\\PaperDoll\\UI-PaperDoll-Slot-Chest:32|t";
+    case CharacterSlot::SLOT_SHIRT:
+        return "|TInterface\\PaperDoll\\UI-PaperDoll-Slot-Shirt:32|t";
+    case CharacterSlot::SLOT_TABARD:
+        return "|TInterface\\PaperDoll\\UI-PaperDoll-Slot-Tabard:32|t";
+    case CharacterSlot::SLOT_WRISTS:
+        return "|TInterface\\PaperDoll\\UI-PaperDoll-Slot-Wrists:32|t";
+    case CharacterSlot::SLOT_HANDS:
+        return "|TInterface\\PaperDoll\\UI-PaperDoll-Slot-Hands:32|t";
+    case CharacterSlot::SLOT_WAIST:
+        return "|TInterface\\PaperDoll\\UI-PaperDoll-Slot-Waist:32|t";
+    case CharacterSlot::SLOT_LEGS:
+        return "|TInterface\\PaperDoll\\UI-PaperDoll-Slot-Legs:32|t";
+    case CharacterSlot::SLOT_FEET:
+        return "|TInterface\\PaperDoll\\UI-PaperDoll-Slot-Feet:32|t";
+    case CharacterSlot::SLOT_FINGER1:
+        return "|TInterface\\PaperDoll\\UI-PaperDoll-Slot-Finger:32|t";
+    case CharacterSlot::SLOT_FINGER2:
+        return "|TInterface\\PaperDoll\\UI-PaperDoll-Slot-Finger:32|t";
+    case CharacterSlot::SLOT_TRINKET1:
+        return "|TInterface\\PaperDoll\\UI-PaperDoll-Slot-Trinket:32|t";
+    case CharacterSlot::SLOT_TRINKET2:
+        return "|TInterface\\PaperDoll\\UI-PaperDoll-Slot-Trinket:32|t";
+    case CharacterSlot::SLOT_MAIN_HAND:
+        return "|TInterface\\PaperDoll\\UI-PaperDoll-Slot-MainHand:32|t";
+    case CharacterSlot::SLOT_OFF_HAND:
+        return "|TInterface\\PaperDoll\\UI-PaperDoll-Slot-SecondaryHand:32|t";
+    case CharacterSlot::SLOT_RANGED:
+        return "|TInterface\\PaperDoll\\UI-PaperDoll-Slot-Ranged:32|t";
+    }
+
+    return "";
+}
+
+std::string DynamicSocketsManager::GetNameFromCharacterSlot(uint32 slot)
+{
+    switch (slot)
+    {
+    case CharacterSlot::SLOT_HEAD:
+        return "Head";
+    case CharacterSlot::SLOT_NECK:
+        return "Neck";
+    case CharacterSlot::SLOT_SHOULDERS:
+        return "Shoulders";
+    case CharacterSlot::SLOT_BACK:
+        return "Back";
+    case CharacterSlot::SLOT_CHEST:
+        return "Chest";
+    case CharacterSlot::SLOT_SHIRT:
+        return "Shirt";
+    case CharacterSlot::SLOT_TABARD:
+        return "Tabard";
+    case CharacterSlot::SLOT_WRISTS:
+        return "Wrists";
+    case CharacterSlot::SLOT_HANDS:
+        return "Hands";
+    case CharacterSlot::SLOT_WAIST:
+        return "Waist";
+    case CharacterSlot::SLOT_LEGS:
+        return "Legs";
+    case CharacterSlot::SLOT_FEET:
+        return "Feet";
+    case CharacterSlot::SLOT_FINGER1:
+        return "Ring 1";
+    case CharacterSlot::SLOT_FINGER2:
+        return "Ring 2";
+    case CharacterSlot::SLOT_TRINKET1:
+        return "Trinket 1";
+    case CharacterSlot::SLOT_TRINKET2:
+        return "Trinket 2";
+    case CharacterSlot::SLOT_MAIN_HAND:
+        return "Main-Hand";
+    case CharacterSlot::SLOT_OFF_HAND:
+        return "Off-Hand";
+    case CharacterSlot::SLOT_RANGED:
+        return "Ranged/Relic/Totem";
+    }
+
+    return Acore::StringFormatFmt("Error: Unnamed slot {}", slot);
+}
+
 bool DynamicSocketsManager::IsEquipmentSlotOccupied(Player* player, uint32 slot)
 {
     return GetItemFromSlot(player, slot);

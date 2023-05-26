@@ -25,6 +25,8 @@ public:
     std::vector<Item*> GetItemsFromInventory(Player* player, uint32 itemClassMask, uint32 itemSubclassMask, uint32 slotStart, uint32 slotEnd);
     std::vector<Item*> GetGemsFromInventory(Player* player);
     Item* GetItemFromSlot(Player* player, uint32 slot);
+    std::string GetIconForCharacterSlot(uint32 slot);
+    std::string GetNameFromCharacterSlot(uint32 slot);
     bool IsEquipmentSlotOccupied(Player* player, uint32 slot);
     bool TrySocketItem(Player* player, Item* item, Item* socketItem, EnchantmentSlot socketSlot);
 public:

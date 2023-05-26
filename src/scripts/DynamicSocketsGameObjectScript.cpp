@@ -7,7 +7,7 @@
 bool DynamicSocketsGameObjectScript::OnGossipHello(Player* player, GameObject* go)
 {
     ClearGossipMenuFor(player);
-    AddGossipItemFor(player, GOSSIP_ICON_CHAT, "Add Socket", GOSSIP_SENDER_MAIN, MYSTIC_ANVIL_SOCKET_ADD);
+    AddGossipItemFor(player, GOSSIP_ICON_CHAT, "|TInterface\\ITEMSOCKETINGFRAME\\UI-EMPTYSOCKET:16|t Add Socket", GOSSIP_SENDER_MAIN, MYSTIC_ANVIL_SOCKET_ADD);
     SendGossipMenuFor(player, MYSTIC_ANVIL_TEXT_ID, go->GetGUID());
 
     return true;
@@ -26,34 +26,21 @@ bool DynamicSocketsGameObjectScript::OnGossipSelect(Player* player, GameObject* 
         ClearGossipMenuFor(player);
 
         // TODO: Clean this up with a loop.
-        if (sDynamicSocketsMgr->IsEquipmentSlotOccupied(player, SLOT_HEAD))
-            AddGossipItemFor(player, GOSSIP_ICON_CHAT, "Head", GOSSIP_SENDER_MAIN, MYSTIC_ANVIL_SOCKET_ADD_SELECT_SLOT + SLOT_HEAD);
-        if (sDynamicSocketsMgr->IsEquipmentSlotOccupied(player, SLOT_NECK))
-            AddGossipItemFor(player, GOSSIP_ICON_CHAT, "Neck", GOSSIP_SENDER_MAIN, MYSTIC_ANVIL_SOCKET_ADD_SELECT_SLOT + SLOT_NECK);
-        if (sDynamicSocketsMgr->IsEquipmentSlotOccupied(player, SLOT_SHOULDERS))
-            AddGossipItemFor(player, GOSSIP_ICON_CHAT, "Shoulders", GOSSIP_SENDER_MAIN, MYSTIC_ANVIL_SOCKET_ADD_SELECT_SLOT + SLOT_SHOULDERS);
-        if (sDynamicSocketsMgr->IsEquipmentSlotOccupied(player, SLOT_BACK))
-            AddGossipItemFor(player, GOSSIP_ICON_CHAT, "Back", GOSSIP_SENDER_MAIN, MYSTIC_ANVIL_SOCKET_ADD_SELECT_SLOT + SLOT_BACK);
-        if (sDynamicSocketsMgr->IsEquipmentSlotOccupied(player, SLOT_CHEST))
-            AddGossipItemFor(player, GOSSIP_ICON_CHAT, "Chest", GOSSIP_SENDER_MAIN, MYSTIC_ANVIL_SOCKET_ADD_SELECT_SLOT + SLOT_CHEST);
-        if (sDynamicSocketsMgr->IsEquipmentSlotOccupied(player, SLOT_WRISTS))
-            AddGossipItemFor(player, GOSSIP_ICON_CHAT, "Wrist", GOSSIP_SENDER_MAIN, MYSTIC_ANVIL_SOCKET_ADD_SELECT_SLOT + SLOT_WRISTS);
-        if (sDynamicSocketsMgr->IsEquipmentSlotOccupied(player, SLOT_HANDS))
-            AddGossipItemFor(player, GOSSIP_ICON_CHAT, "Hands", GOSSIP_SENDER_MAIN, MYSTIC_ANVIL_SOCKET_ADD_SELECT_SLOT + SLOT_HANDS);
-        if (sDynamicSocketsMgr->IsEquipmentSlotOccupied(player, SLOT_WAIST))
-            AddGossipItemFor(player, GOSSIP_ICON_CHAT, "Waist", GOSSIP_SENDER_MAIN, MYSTIC_ANVIL_SOCKET_ADD_SELECT_SLOT + SLOT_WAIST);
-        if (sDynamicSocketsMgr->IsEquipmentSlotOccupied(player, SLOT_LEGS))
-            AddGossipItemFor(player, GOSSIP_ICON_CHAT, "Legs", GOSSIP_SENDER_MAIN, MYSTIC_ANVIL_SOCKET_ADD_SELECT_SLOT + SLOT_LEGS);
-        if (sDynamicSocketsMgr->IsEquipmentSlotOccupied(player, SLOT_FEET))
-            AddGossipItemFor(player, GOSSIP_ICON_CHAT, "Feet", GOSSIP_SENDER_MAIN, MYSTIC_ANVIL_SOCKET_ADD_SELECT_SLOT + SLOT_FEET);
-        if (sDynamicSocketsMgr->IsEquipmentSlotOccupied(player, SLOT_FINGER1))
-            AddGossipItemFor(player, GOSSIP_ICON_CHAT, "Ring 1", GOSSIP_SENDER_MAIN, MYSTIC_ANVIL_SOCKET_ADD_SELECT_SLOT + SLOT_FINGER1);
-        if (sDynamicSocketsMgr->IsEquipmentSlotOccupied(player, SLOT_FINGER2))
-            AddGossipItemFor(player, GOSSIP_ICON_CHAT, "Ring 2", GOSSIP_SENDER_MAIN, MYSTIC_ANVIL_SOCKET_ADD_SELECT_SLOT + SLOT_FINGER2);
-        if (sDynamicSocketsMgr->IsEquipmentSlotOccupied(player, SLOT_TRINKET1))
-            AddGossipItemFor(player, GOSSIP_ICON_CHAT, "Trinket 1", GOSSIP_SENDER_MAIN, MYSTIC_ANVIL_SOCKET_ADD_SELECT_SLOT + SLOT_TRINKET1);
-        if (sDynamicSocketsMgr->IsEquipmentSlotOccupied(player, SLOT_TRINKET2))
-            AddGossipItemFor(player, GOSSIP_ICON_CHAT, "Trinket 2", GOSSIP_SENDER_MAIN, MYSTIC_ANVIL_SOCKET_ADD_SELECT_SLOT + SLOT_TRINKET2);
+
+        for (uint32 slot = EQUIPMENT_SLOT_START; slot < EQUIPMENT_SLOT_END; ++slot)
+        {
+            // Items I don't want socketable.
+            if (slot == SLOT_SHIRT || slot == SLOT_TABARD)
+            {
+                continue;
+            }
+
+            if (sDynamicSocketsMgr->IsEquipmentSlotOccupied(player, slot))
+            {
+                std::string option = Acore::StringFormatFmt("{} {}", sDynamicSocketsMgr->GetIconForCharacterSlot(slot), sDynamicSocketsMgr->GetNameFromCharacterSlot(slot));
+                AddGossipItemFor(player, GOSSIP_ICON_CHAT, option, GOSSIP_SENDER_MAIN, MYSTIC_ANVIL_SOCKET_ADD_SELECT_SLOT + slot);
+            }
+        }
 
         SendGossipMenuFor(player, MYSTIC_ANVIL_SOCKET_ADD_SELECT_SLOT_TEXT_ID, go->GetGUID());
     }
@@ -62,7 +49,7 @@ bool DynamicSocketsGameObjectScript::OnGossipSelect(Player* player, GameObject* 
     {
         ClearGossipMenuFor(player);
         auto slot = action - MYSTIC_ANVIL_SOCKET_ADD_SELECT_SLOT;
-        AddGossipItemFor(player, GOSSIP_ICON_CHAT, "Are you sure you want to socket this", GOSSIP_SENDER_MAIN, MYSTIC_ANVIL_SOCKET_ADD_SELEPT_SLOT_ACCEPT + slot);
+        AddGossipItemFor(player, GOSSIP_ICON_CHAT, "|TInterface\\ICONS\\INV_Misc_Gem_Variety_02:16|t Use random gem from inventory.", GOSSIP_SENDER_MAIN, MYSTIC_ANVIL_SOCKET_ADD_SELEPT_SLOT_ACCEPT + slot, "|cffFF0000Are you sure you want to gem this item?|r", 0, false);
         SendGossipMenuFor(player, MYSTIC_ANVIL_SOCKET_ADD_SELECT_SLOT_HEAD_TEXT_ID, go->GetGUID());
     }
 
