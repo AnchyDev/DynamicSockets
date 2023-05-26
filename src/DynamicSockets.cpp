@@ -34,31 +34,9 @@ void DynamicSocketsPlayerScript::OnStoreNewItem(Player* player, Item* item, uint
         return;
     }
 
-    Item* socketItem = nullptr;
-    bool foundGem = false;
+    auto gems = sDynamicSocketsMgr->GetGemsFromInventory(player);
 
-    for (uint16 i = PLAYER_SLOT_START; i < PLAYER_SLOT_END; ++i)
-    {
-        Item* slotItem = player->GetItemByPos(INVENTORY_SLOT_BAG_0, i);
-        if (!slotItem)
-        {
-            continue;
-        }
-
-        auto slotItemProto = slotItem->GetTemplate();
-
-        // Simple gems include, tigerseyes, malachite, etc..
-        // So we cannot applies those to gear.
-        if (slotItemProto->Class == ITEM_CLASS_GEM &&
-            slotItemProto->SubClass != ITEM_SUBCLASS_GEM_SIMPLE)
-        {
-            socketItem = slotItem;
-            foundGem = true;
-            break;
-        }
-    }
-
-    if (!foundGem)
+    if (gems.empty())
     {
         LOG_INFO("module", "No gem to socket");
         return;
@@ -66,11 +44,25 @@ void DynamicSocketsPlayerScript::OnStoreNewItem(Player* player, Item* item, uint
 
     LOG_INFO("module", "Found gem to socket");
 
-    bool result = sDynamicSocketsMgr->TrySocketItem(player, item, socketItem);
+    // Just get the first gem for testing.
+    auto gem = gems.at(0);
+    bool result = sDynamicSocketsMgr->TrySocketItem(player, item, gem);
     if (result)
     {
-        player->RemoveItem(socketItem->GetBagSlot(), socketItem->GetSlot(), true);
+        player->RemoveItem(gem->GetBagSlot(), gem->GetSlot(), true);
         ChatHandler(player->GetSession()).SendSysMessage(Acore::StringFormatFmt("Socketed item {}.", item->GetTemplate()->Name1));
+
+        uint32 classMask = sDynamicSocketsMgr->GetMaskFromValues(std::vector<uint32> {});
+        uint32 subClassMask = sDynamicSocketsMgr->GetMaskFromValues(std::vector<uint32> {});
+
+        auto items = sDynamicSocketsMgr->GetItemsFromInventory(player, classMask, subClassMask, EQUIPMENT_SLOT_START, EQUIPMENT_SLOT_END);
+        if (!items.empty())
+        {
+            for (auto it : items)
+            {
+                ChatHandler(player->GetSession()).SendSysMessage(Acore::StringFormatFmt("Found item {}.", it->GetTemplate()->Name1));
+            }
+        }
     }
 }
 

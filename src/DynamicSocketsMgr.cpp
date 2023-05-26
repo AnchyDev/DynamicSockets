@@ -282,6 +282,59 @@ void DynamicSocketsManager::HandleApplyEnchantment(Player* player, Item* item, E
     }
 }
 
+uint32 DynamicSocketsManager::GetMaskFromValues(std::vector<uint32> values)
+{
+    uint32 mask = 0;
+
+    for (auto value : values)
+    {
+        mask += (1 << value);
+    }
+
+    return mask;
+}
+
+std::vector<Item*> DynamicSocketsManager::GetItemsFromInventory(Player* player, uint32 itemClassMask, uint32 itemSubclassMask, uint32 slotStart, uint32 slotEnd)
+{
+    std::vector<Item*> items;
+
+    for (uint16 i = slotStart; i < slotEnd; ++i)
+    {
+        Item* slotItem = player->GetItemByPos(INVENTORY_SLOT_BAG_0, i);
+        if (!slotItem)
+        {
+            continue;
+        }
+
+        auto slotItemProto = slotItem->GetTemplate();
+
+        uint32 classMask = 1 << slotItemProto->Class;
+        uint32 subclassMask = 1 << slotItemProto->SubClass;
+
+        if ((itemClassMask == 0 || itemClassMask & classMask) &&
+            (itemSubclassMask == 0 || itemSubclassMask & subclassMask))
+        {
+            items.push_back(slotItem);
+        }
+    }
+
+    return items;
+}
+
+std::vector<Item*> DynamicSocketsManager::GetGemsFromInventory(Player* player)
+{
+    uint32 classMask = GetMaskFromValues(std::vector<uint32> { ITEM_CLASS_GEM });
+    uint32 subClassMask = GetMaskFromValues(std::vector<uint32>
+    {
+        ITEM_SUBCLASS_GEM_RED, ITEM_SUBCLASS_GEM_BLUE,
+        ITEM_SUBCLASS_GEM_YELLOW, ITEM_SUBCLASS_GEM_PURPLE,
+        ITEM_SUBCLASS_GEM_GREEN, ITEM_SUBCLASS_GEM_ORANGE,
+        ITEM_SUBCLASS_GEM_META, ITEM_SUBCLASS_GEM_PRISMATIC
+    });
+
+    return GetItemsFromInventory(player, classMask, subClassMask, PLAYER_SLOT_START, PLAYER_SLOT_END);
+}
+
 bool DynamicSocketsManager::TrySocketItem(Player* player, Item* item, Item* socketItem)
 {
     LOG_INFO("module", "Trying to socket item.");

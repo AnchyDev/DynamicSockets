@@ -3,6 +3,8 @@
 
 #include "Player.h"
 
+#include <vector>
+
 class DynamicSocketsManager
 {
 private:
@@ -19,6 +21,9 @@ public:
     */
     void HandleApplyEnchantment(Player* player, Item* item, EnchantmentSlot slot, bool apply, bool applyDuration, bool ignoreCondition);
 
+    uint32 GetMaskFromValues(std::vector<uint32> values);
+    std::vector<Item*> GetItemsFromInventory(Player* player, uint32 itemClassMask, uint32 itemSubclassMask, uint32 slotStart, uint32 slotEnd);
+    std::vector<Item*> GetGemsFromInventory(Player* player);
     bool TrySocketItem(Player* player, Item* item, Item* socketItem);
 public:
     static DynamicSocketsManager* GetInstance();
