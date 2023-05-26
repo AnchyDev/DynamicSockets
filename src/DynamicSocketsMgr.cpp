@@ -300,23 +300,26 @@ std::vector<Item*> DynamicSocketsManager::GetItemsFromInventory(Player* player, 
 {
     std::vector<Item*> items;
 
-    for (uint16 i = slotStart; i < slotEnd; ++i)
+    for (uint16 slotBag = INVENTORY_SLOT_BAG_START; slotBag < INVENTORY_SLOT_BAG_END + 1; ++slotBag)
     {
-        Item* slotItem = player->GetItemByPos(INVENTORY_SLOT_BAG_0, i);
-        if (!slotItem)
+        for (uint16 i = slotStart; i < slotEnd; ++i)
         {
-            continue;
-        }
+            Item* slotItem = player->GetItemByPos(slotBag == INVENTORY_SLOT_BAG_END ? INVENTORY_SLOT_BAG_0 : slotBag, i);
+            if (!slotItem)
+            {
+                continue;
+            }
 
-        auto slotItemProto = slotItem->GetTemplate();
+            auto slotItemProto = slotItem->GetTemplate();
 
-        uint32 classMask = 1 << slotItemProto->Class;
-        uint32 subclassMask = 1 << slotItemProto->SubClass;
+            uint32 classMask = 1 << slotItemProto->Class;
+            uint32 subclassMask = 1 << slotItemProto->SubClass;
 
-        if ((itemClassMask == 0 || itemClassMask & classMask) &&
-            (itemSubclassMask == 0 || itemSubclassMask & subclassMask))
-        {
-            items.push_back(slotItem);
+            if ((itemClassMask == 0 || itemClassMask & classMask) &&
+                (itemSubclassMask == 0 || itemSubclassMask & subclassMask))
+            {
+                items.push_back(slotItem);
+            }
         }
     }
 

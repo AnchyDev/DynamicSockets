@@ -69,11 +69,12 @@ bool DynamicSocketsGameObjectScript::OnGossipSelect(Player* player, GameObject* 
         queueItem->Item = player->GetItemByPos(INVENTORY_SLOT_BAG_0, slot);
 
         auto gems = sDynamicSocketsMgr->GetGemsFromInventory(player);
-        bool hasGems = !gems.empty();
+        auto slicedGems = std::vector<Item*>(gems.begin(), gems.begin() + 32);
+        bool hasGems = !slicedGems.empty();
 
         if (hasGems)
         {
-            for (auto gem : gems)
+            for (auto gem : slicedGems)
             {
                 std::string gemIcon = "";
                 if (auto displayInfo = sItemDisplayInfoStore.LookupEntry(gem->GetTemplate()->DisplayInfoID))
