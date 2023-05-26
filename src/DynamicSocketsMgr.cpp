@@ -345,7 +345,7 @@ bool DynamicSocketsManager::IsEquipmentSlotOccupied(Player* player, uint32 slot)
     return GetItemFromSlot(player, slot);
 }
 
-bool DynamicSocketsManager::TrySocketItem(Player* player, Item* item, Item* socketItem)
+bool DynamicSocketsManager::TrySocketItem(Player* player, Item* item, Item* socketItem, EnchantmentSlot socketSlot)
 {
     LOG_INFO("module", "Trying to socket item.");
 
@@ -370,32 +370,14 @@ bool DynamicSocketsManager::TrySocketItem(Player* player, Item* item, Item* sock
         return false;
     }
 
-    if (!item->GetEnchantmentId(SOCK_ENCHANTMENT_SLOT))
+    if (!item->GetEnchantmentId(socketSlot))
     {
-        item->SetEnchantment(SOCK_ENCHANTMENT_SLOT, enchantId, 0, 0);
+        item->SetEnchantment(socketSlot, enchantId, 0, 0);
 
         if (item->IsEquipped())
-            sDynamicSocketsMgr->HandleApplyEnchantment(player, item, SOCK_ENCHANTMENT_SLOT, true, 0, 0);
-
-        return true;
-    }
-
-    if (!item->GetEnchantmentId(SOCK_ENCHANTMENT_SLOT_2))
-    {
-        item->SetEnchantment(SOCK_ENCHANTMENT_SLOT_2, enchantId, 0, 0);
-
-        if (item->IsEquipped())
-            sDynamicSocketsMgr->HandleApplyEnchantment(player, item, SOCK_ENCHANTMENT_SLOT_2, true, 0, 0);
-
-        return true;
-    }
-
-    if (!item->GetEnchantmentId(SOCK_ENCHANTMENT_SLOT_3))
-    {
-        item->SetEnchantment(SOCK_ENCHANTMENT_SLOT_3, enchantId, 0, 0);
-
-        if (item->IsEquipped())
-            sDynamicSocketsMgr->HandleApplyEnchantment(player, item, SOCK_ENCHANTMENT_SLOT_3, true, 0, 0);
+        {
+            sDynamicSocketsMgr->HandleApplyEnchantment(player, item, socketSlot, true, 0, 0);
+        }
 
         return true;
     }

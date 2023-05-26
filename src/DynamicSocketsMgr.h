@@ -26,7 +26,7 @@ public:
     std::vector<Item*> GetGemsFromInventory(Player* player);
     Item* GetItemFromSlot(Player* player, uint32 slot);
     bool IsEquipmentSlotOccupied(Player* player, uint32 slot);
-    bool TrySocketItem(Player* player, Item* item, Item* socketItem);
+    bool TrySocketItem(Player* player, Item* item, Item* socketItem, EnchantmentSlot socketSlot);
 public:
     static DynamicSocketsManager* GetInstance();
 };  

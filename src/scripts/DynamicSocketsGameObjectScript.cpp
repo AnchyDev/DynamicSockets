@@ -88,16 +88,16 @@ bool DynamicSocketsGameObjectScript::OnGossipSelect(Player* player, GameObject* 
             LOG_INFO("module", "Found no item at slot {}.", slot);
             return true;
         }
-        bool result = sDynamicSocketsMgr->TrySocketItem(player, item, gem);
+        bool result = sDynamicSocketsMgr->TrySocketItem(player, item, gem, SOCK_ENCHANTMENT_SLOT);
         if (!result)
         {
             CloseGossipMenuFor(player);
-            LOG_INFO("module", "Failed socket", slot);
+            LOG_INFO("module", "Failed socket, already occupied.", slot);
             return true;
         }
 
         LOG_INFO("module", "Socketing success.", slot);
-        player->RemoveItem(gem->GetBagSlot(), gem->GetSlot(), true);
+        player->DestroyItem(gem->GetBagSlot(), gem->GetSlot(), true);
     }
 
     return true;
