@@ -340,6 +340,54 @@ Item* DynamicSocketsManager::GetItemFromSlot(Player* player, uint32 slot)
     return player->GetItemByPos(INVENTORY_SLOT_BAG_0, slot);
 }
 
+std::string DynamicSocketsManager::GetItemLink(Player* player, Item* item)
+{
+    auto itemProto = item->GetTemplate();
+
+    // Retrieve the locale name.
+    int localeIndex = player->GetSession()->GetSessionDbLocaleIndex();
+    if (localeIndex >= 0)
+    {
+        uint8 ulocaleIndex = uint8(localeIndex);
+        if (ItemLocale const* il = sObjectMgr->GetItemLocale(itemProto->ItemId))
+        {
+            // Set locale name, or default name if locale = 0.
+            std::string name = (il->Name.size() > ulocaleIndex && !il->Name[ulocaleIndex].empty()) ? il->Name[ulocaleIndex] : itemProto->Name1;
+
+            if (!name.empty())
+            {
+                std::ostringstream oss;
+
+                // Build item link.
+                oss << "|c" << std::hex << ItemQualityColors[itemProto->Quality] << std::dec << "|Hitem:" << itemProto->ItemId;
+
+                oss << ":";
+                auto enchantId = item->GetEnchantmentId(PERM_ENCHANTMENT_SLOT);
+                if (enchantId)
+                {
+                    oss << enchantId;
+                }
+
+                oss << ":::::";
+                auto randProp = item->GetItemRandomPropertyId();
+                if (randProp != 0)
+                {
+                    oss << randProp;
+                }
+                oss << "::";
+                oss << player->GetLevel();
+                oss << "|h[";
+                oss << name;
+                oss << "]|h|r";
+
+                return oss.str();
+            }
+        }
+    }
+
+    return "";
+}
+
 std::string DynamicSocketsManager::GetIconForCharacterSlot(uint32 slot)
 {
     switch (slot)
@@ -514,6 +562,11 @@ bool DynamicSocketsManager::TrySocketItem(Player* player, Item* item, Item* sock
     }
 
     return false;
+}
+
+DynamicSocketsQueue* DynamicSocketsManager::GetSocketQueue()
+{
+    return DynamicSocketsQueue::GetInstance();
 }
 
 DynamicSocketsManager* DynamicSocketsManager::GetInstance()
