@@ -9,8 +9,8 @@ public:
     DynamicSocketsPlayerScript() : PlayerScript("DynamicSocketsPlayerScript") { }
 
 private:
-    void HandleApplyEnchantment(Player* player, Item* item, EnchantmentSlot slot, bool apply, bool applyDuration, bool ignoreCondition);
     bool CanApplyEnchantment(Player* player, Item* item, EnchantmentSlot slot, bool apply, bool apply_dur, bool ignore_condition) override;
+    void OnStoreNewItem(Player* /*player*/, Item* /*item*/, uint32 /*count*/) override;
 };
 
 #endif // MODULE_DYNAMIC_SOCKETS_H
