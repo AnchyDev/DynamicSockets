@@ -24,6 +24,8 @@ public:
     uint32 GetMaskFromValues(std::vector<uint32> values);
     std::vector<Item*> GetItemsFromInventory(Player* player, uint32 itemClassMask, uint32 itemSubclassMask, uint32 slotStart, uint32 slotEnd);
     std::vector<Item*> GetGemsFromInventory(Player* player);
+    Item* GetItemFromSlot(Player* player, uint32 slot);
+    bool IsEquipmentSlotOccupied(Player* player, uint32 slot);
     bool TrySocketItem(Player* player, Item* item, Item* socketItem);
 public:
     static DynamicSocketsManager* GetInstance();
