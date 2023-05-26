@@ -10,6 +10,7 @@ struct DynamicSocketsQueueItem
 {
     Item* Gem;
     Item* Item;
+    EnchantmentSlot Slot;
 };
 
 class DynamicSocketsQueue
@@ -60,6 +61,8 @@ public:
     EnchantmentSlot GetFreeSocketSlot(Player* player, uint32 itemSlot);
     bool TrySocketItem(Player* player, Item* item, Item* socketItem, EnchantmentSlot socketSlot);
     DynamicSocketsQueue* GetSocketQueue();
+
+    uint32 GetSocketCost(Item* item, Item* gem, EnchantmentSlot socket);
 public:
     static DynamicSocketsManager* GetInstance();
 };  

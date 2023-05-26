@@ -1,5 +1,7 @@
 #include "DynamicSocketsMgr.h"
 
+#include "Config.h"
+
 
 void DynamicSocketsManager::HandleApplyEnchantment(Player* player, Item* item, EnchantmentSlot slot, bool apply, bool applyDuration, bool ignoreCondition)
 {
@@ -567,6 +569,55 @@ bool DynamicSocketsManager::TrySocketItem(Player* player, Item* item, Item* sock
 DynamicSocketsQueue* DynamicSocketsManager::GetSocketQueue()
 {
     return DynamicSocketsQueue::GetInstance();
+}
+
+uint32 DynamicSocketsManager::GetSocketCost(Item* item, Item* gem, EnchantmentSlot socket)
+{
+    if (!item || !gem)
+    {
+        return 0;
+    }
+
+    float slotMultiplier = 0;
+    switch (socket)
+    {
+        case EnchantmentSlot::SOCK_ENCHANTMENT_SLOT:
+            slotMultiplier = sConfigMgr->GetOption<float>("DynamicSockets.Cost.Multiplier.Slot.1", 1);
+            break;
+        case EnchantmentSlot::SOCK_ENCHANTMENT_SLOT_2:
+            slotMultiplier = sConfigMgr->GetOption<float>("DynamicSockets.Cost.Multiplier.Slot.2", 2);
+            break;
+        case EnchantmentSlot::SOCK_ENCHANTMENT_SLOT_3:
+            slotMultiplier = sConfigMgr->GetOption<float>("DynamicSockets.Cost.Multiplier.Slot.3", 3);
+            break;
+        default:
+            return 0;
+    }
+
+    float qualityMultiplier = 0;
+    switch (gem->GetTemplate()->Quality)
+    {
+    case ITEM_QUALITY_NORMAL:
+        qualityMultiplier = sConfigMgr->GetOption<float>("DynamicSockets.Cost.Multiplier.Gem.Quality.Common", 1);
+        break;
+    case ITEM_QUALITY_UNCOMMON:
+        qualityMultiplier = sConfigMgr->GetOption<float>("DynamicSockets.Cost.Multiplier.Gem.Quality.Uncommon", 1.5);
+        break;
+    case ITEM_QUALITY_RARE:
+        qualityMultiplier = sConfigMgr->GetOption<float>("DynamicSockets.Cost.Multiplier.Gem.Quality.Rare", 2);
+        break;
+    case ITEM_QUALITY_EPIC:
+        qualityMultiplier = sConfigMgr->GetOption<float>("DynamicSockets.Cost.Multiplier.Gem.Quality.Epic", 2.5);
+        break;
+    default:
+        return 0;
+    }
+
+    float itemLevel = item->GetTemplate()->ItemLevel;
+    float baseCost = sConfigMgr->GetOption<float>("DynamicSockets.Cost.BaseCost", 5);
+    float multiplier = sConfigMgr->GetOption<float>("DynamicSockets.Cost.Multiplier", 1);
+
+    return ((itemLevel * slotMultiplier * qualityMultiplier) * baseCost) * multiplier;
 }
 
 DynamicSocketsManager* DynamicSocketsManager::GetInstance()

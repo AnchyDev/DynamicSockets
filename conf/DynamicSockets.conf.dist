@@ -15,3 +15,14 @@
 #
 
 DynamicSockets.Enable = 0
+
+DynamicSockets.Cost.CurrencyEntryId = 37711
+DynamicSockets.Cost.BaseCost = 5
+DynamicSockets.Cost.Multiplier = 1
+DynamicSockets.Cost.Multiplier.Slot.1 = 1
+DynamicSockets.Cost.Multiplier.Slot.2 = 2
+DynamicSockets.Cost.Multiplier.Slot.3 = 3
+DynamicSockets.Cost.Multiplier.Gem.Quality.Common = 1
+DynamicSockets.Cost.Multiplier.Gem.Quality.Uncommon = 1.5
+DynamicSockets.Cost.Multiplier.Gem.Quality.Rare = 2
+DynamicSockets.Cost.Multiplier.Gem.Quality.Epic = 2.5
