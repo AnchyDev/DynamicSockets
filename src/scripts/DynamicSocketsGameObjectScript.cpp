@@ -69,7 +69,7 @@ bool DynamicSocketsGameObjectScript::OnGossipSelect(Player* player, GameObject* 
         queueItem->Item = player->GetItemByPos(INVENTORY_SLOT_BAG_0, slot);
 
         auto gems = sDynamicSocketsMgr->GetGemsFromInventory(player);
-        auto slicedGems = std::vector<Item*>(gems.begin(), gems.begin() + 32);
+        auto slicedGems = std::vector<Item*>(gems.begin(), gems.begin() + GOSSIP_MAX_MENU_ITEMS);
         bool hasGems = !slicedGems.empty();
 
         if (hasGems)
