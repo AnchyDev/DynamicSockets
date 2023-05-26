@@ -108,10 +108,7 @@ bool DynamicSocketsGameObjectScript::OnGossipSelect(Player* player, GameObject* 
         auto queueItem = queue->Get(player);
         queueItem->Gem = player->GetItemByPos(INVENTORY_SLOT_BAG_0, slot);
 
-        uint32 socket = 1;
-        uint32 baseCost = 5;
-        uint32 multiplier = 1;
-        auto cost = ((queueItem->Item->GetTemplate()->ItemLevel * socket * queueItem->Gem->GetTemplate()->Quality) * baseCost) * multiplier;
+        auto cost = sDynamicSocketsMgr->GetSocketCost(queueItem->Item, queueItem->Gem, SOCK_ENCHANTMENT_SLOT);
 
         uint32 currencyId = 37711;
         uint32 currencyCount = player->GetItemCount(currencyId);
