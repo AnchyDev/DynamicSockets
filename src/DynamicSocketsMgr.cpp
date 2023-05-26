@@ -434,9 +434,46 @@ std::string DynamicSocketsManager::GetNameFromCharacterSlot(uint32 slot)
     return Acore::StringFormatFmt("Error: Unnamed slot {}", slot);
 }
 
-bool DynamicSocketsManager::IsEquipmentSlotOccupied(Player* player, uint32 slot)
+bool DynamicSocketsManager::IsEquipmentSlotOccupied(Player* player, uint32 itemSlot)
 {
-    return GetItemFromSlot(player, slot);
+    return GetItemFromSlot(player, itemSlot);
+}
+
+bool DynamicSocketsManager::IsSocketSlotOccupied(Player* player, uint32 itemSlot, EnchantmentSlot socketSlot)
+{
+    auto item = GetItemFromSlot(player, itemSlot);
+    if (!item)
+    {
+        return false;
+    }
+
+    return item->GetEnchantmentId(socketSlot);
+}
+
+EnchantmentSlot DynamicSocketsManager::GetFreeSocketSlot(Player* player, uint32 itemSlot)
+{
+    auto item = GetItemFromSlot(player, itemSlot);
+    if (!item)
+    {
+        return MAX_ENCHANTMENT_SLOT;
+    }
+
+    if (!IsSocketSlotOccupied(player, itemSlot, SOCK_ENCHANTMENT_SLOT))
+    {
+        return SOCK_ENCHANTMENT_SLOT;
+    }
+
+    if (!IsSocketSlotOccupied(player, itemSlot, SOCK_ENCHANTMENT_SLOT_2))
+    {
+        return SOCK_ENCHANTMENT_SLOT_2;
+    }
+
+    if (!IsSocketSlotOccupied(player, itemSlot, SOCK_ENCHANTMENT_SLOT_3))
+    {
+        return SOCK_ENCHANTMENT_SLOT_3;
+    }
+
+    return MAX_ENCHANTMENT_SLOT;
 }
 
 bool DynamicSocketsManager::TrySocketItem(Player* player, Item* item, Item* socketItem, EnchantmentSlot socketSlot)
