@@ -102,6 +102,8 @@ void DynamicSocketsGameObjectScript::GossipHandleSocketAddSelectArmor(Player* pl
             case SOCK_ENCHANTMENT_SLOT_3:
                 availableSocketStr = "|cffFF002EThird Socket|r";
                 break;
+            default:
+                break;
             }
 
             std::string option = Acore::StringFormatFmt("{} {}|n{} {}", armorIcon.empty() ? sDynamicSocketsMgr->GetIconForCharacterSlot(slot) : armorIcon, itemProto->Name1, qualityIcon, availableSocketStr);
