@@ -42,5 +42,18 @@ bool DynamicSocketsBeltBucklePlayerScript::CanCastItemUseSpell(Player* player, I
 
     player->DestroyItemCount(item->GetTemplate()->ItemId, 1, true);
 
+    ClearGossipMenuFor(player);
+    AddGossipItemFor(player, GOSSIP_ICON_CHAT, "Test", 0, 1);
+    SendGossipMenuFor(player, 441150, player->GetGUID());
+
     return false;
+}
+
+void DynamicSocketsBeltBucklePlayerScript::OnGossipSelect(Player* player, uint32 /*menu_id*/, uint32 /*sender*/, uint32 action)
+{
+    if (action == 1)
+    {
+        player->HandleEmoteCommand(EMOTE_ONESHOT_WORK_CHOPWOOD);
+        CloseGossipMenuFor(player);
+    }
 }

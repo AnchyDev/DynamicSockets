@@ -32,6 +32,13 @@ public:
 private:
     bool OnGossipHello(Player* /*player*/, GameObject* /*go*/) override;
     bool OnGossipSelect(Player* /*player*/, GameObject* /*go*/, uint32 /*sender*/, uint32 /*action*/) override;
+
+    void GossipHandleExit(Player* player);
+    void GossipHandleSocketRemove(Player* player, GameObject* go);
+    void GossipHandleSocketAddSelectArmor(Player* player, GameObject* go);
+    void GossipHandleSocketAddSelectGem(Player* player, GameObject* go, uint32 action);
+    void GossipHandleSocketAddVerify(Player* player, GameObject* go, uint32 action);
+    void GossipHandleSocketAdd(Player* player, GameObject* go);
 };
 
 #endif // MODULE_DYNAMIC_SOCKETS_GAMEOBJECT_SCRIPT_H
