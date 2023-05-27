@@ -131,7 +131,7 @@ void DynamicSocketsGameObjectScript::GossipHandleSocketAddSelectGem(Player* play
 
     auto queue = sDynamicSocketsMgr->GetSocketQueue();
     auto queueItem = queue->Get(player);
-    queueItem->Item = player->GetItemByPos(INVENTORY_SLOT_BAG_0, slot);
+    queueItem->TargetItem = player->GetItemByPos(INVENTORY_SLOT_BAG_0, slot);
     queueItem->Slot = sDynamicSocketsMgr->GetFreeSocketSlot(player, slot);
 
     auto gems = sDynamicSocketsMgr->GetGemsFromInventory(player);
@@ -167,7 +167,7 @@ void DynamicSocketsGameObjectScript::GossipHandleSocketAddSelectGem(Player* play
             {
                 costIcon = Acore::StringFormatFmt("|TInterface\\ICONS\\{}:16|t ", displayInfo->inventoryIcon);
             }
-            AddGossipItemFor(player, GOSSIP_ICON_CHAT, Acore::StringFormatFmt("{}{}|n{}x{}", gemIcon, sDynamicSocketsMgr->GetItemLink(player, gem), costIcon, sDynamicSocketsMgr->GetSocketCost(queueItem->Item, gem, queueItem->Slot)), GOSSIP_SENDER_MAIN, MYSTIC_ANVIL_SOCKET_ADD_VERIFY + gem->GetSlot());
+            AddGossipItemFor(player, GOSSIP_ICON_CHAT, Acore::StringFormatFmt("{}{}|n{}x{}", gemIcon, sDynamicSocketsMgr->GetItemLink(player, gem), costIcon, sDynamicSocketsMgr->GetSocketCost(queueItem->TargetItem, gem, queueItem->Slot)), GOSSIP_SENDER_MAIN, MYSTIC_ANVIL_SOCKET_ADD_VERIFY + gem->GetSlot());
         }
         SendGossipMenuFor(player, MYSTIC_ANVIL_SOCKET_ADD_SELECT_GEM_TEXT_ID, go->GetGUID());
     }
@@ -187,7 +187,7 @@ void DynamicSocketsGameObjectScript::GossipHandleSocketAddVerify(Player* player,
     auto queueItem = queue->Get(player);
     queueItem->Gem = player->GetItemByPos(INVENTORY_SLOT_BAG_0, slot);
 
-    auto cost = sDynamicSocketsMgr->GetSocketCost(queueItem->Item, queueItem->Gem, queueItem->Slot);
+    auto cost = sDynamicSocketsMgr->GetSocketCost(queueItem->TargetItem, queueItem->Gem, queueItem->Slot);
 
     uint32 currencyId = sConfigMgr->GetOption<uint32>("DynamicSockets.Cost.CurrencyEntryId", 37711);
     uint32 currencyCount = player->GetItemCount(currencyId);
@@ -214,7 +214,7 @@ void DynamicSocketsGameObjectScript::GossipHandleSocketAdd(Player* player, GameO
     auto queue = sDynamicSocketsMgr->GetSocketQueue();
     auto queueItem = queue->Get(player);
 
-    bool result = sDynamicSocketsMgr->TrySocketItem(player, queueItem->Item, queueItem->Gem, queueItem->Slot);
+    bool result = sDynamicSocketsMgr->TrySocketItem(player, queueItem->TargetItem, queueItem->Gem, queueItem->Slot);
 
     if (!result)
     {
@@ -223,7 +223,7 @@ void DynamicSocketsGameObjectScript::GossipHandleSocketAdd(Player* player, GameO
         return;
     }
 
-    auto cost = sDynamicSocketsMgr->GetSocketCost(queueItem->Item, queueItem->Gem, queueItem->Slot);
+    auto cost = sDynamicSocketsMgr->GetSocketCost(queueItem->TargetItem, queueItem->Gem, queueItem->Slot);
 
     uint32 currencyId = sConfigMgr->GetOption<uint32>("DynamicSockets.Cost.CurrencyEntryId", 37711);
     uint32 currencyCount = player->GetItemCount(currencyId);

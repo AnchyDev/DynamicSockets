@@ -9,8 +9,11 @@
 struct DynamicSocketsQueueItem
 {
     Item* Gem;
-    Item* Item;
+    Item* TargetItem;
     EnchantmentSlot Slot;
+
+    Item* SocketRemoveSender;
+    Item* SocketRemoveTarget;
 };
 
 class DynamicSocketsQueue
@@ -26,8 +29,10 @@ public:
         if (it == _queue.end())
         {
             DynamicSocketsQueueItem queueItem;
-            queueItem.Item = nullptr;
+            queueItem.TargetItem = nullptr;
             queueItem.Gem = nullptr;
+            queueItem.SocketRemoveSender = nullptr;
+            queueItem.SocketRemoveTarget = nullptr;
             it = _queue.emplace(player, queueItem).first;
         }
 
