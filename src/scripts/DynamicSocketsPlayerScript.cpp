@@ -1,7 +1,7 @@
 #include "DynamicSocketsPlayerScript.h"
 #include "DynamicSocketsMgr.h"
 
-bool DynamicSocketsPlayerScript::CanApplyEnchantment(Player* player, Item* item, EnchantmentSlot slot, bool apply, bool applyDuration, bool ignoreCondition)
+bool DynamicSocketsPlayerScript::CanApplyEnchantment(Player* player, Item* item, EnchantmentSlot& slot, bool& apply, bool& applyDuration, bool& ignoreCondition)
 {
     if (!player || !item)
     {
@@ -14,6 +14,7 @@ bool DynamicSocketsPlayerScript::CanApplyEnchantment(Player* player, Item* item,
     }
 
     sDynamicSocketsMgr->HandleApplyEnchantment(player, item, slot, apply, applyDuration, ignoreCondition);
+    //TODO: REFRESH META GEMS
 
     return false;
 }

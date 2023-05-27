@@ -2,6 +2,121 @@
 
 #include "Config.h"
 
+bool DynamicSocketsManager::IsEnchantRequirementsMet(Player* player, uint32 enchantCondition)
+{
+    if (!enchantCondition)
+    {
+        return true;
+    }
+
+    auto condition = sSpellItemEnchantmentConditionStore.LookupEntry(enchantCondition);
+    if (!condition)
+    {
+        return true;
+    }
+
+    uint32 needRed = 0;
+    uint32 needYellow = 0;
+    uint32 needBlue = 0;
+
+    // There can only be 5 colors/values.
+    for (uint8 i = 0; i < 5; ++i)
+    {
+        auto color = condition->Color[i];
+        auto value = condition->Value[i];
+
+        if (color && value)
+        {
+            switch (color)
+            {
+            case GEM_CONDITION_RED:
+                needRed += value;
+                break;
+
+            case GEM_CONDITION_YELLOW:
+                needYellow += value;
+                break;
+
+            case GEM_CONDITION_BLUE:
+                needBlue += value;
+                break;
+            }
+        }
+    }
+
+    uint32 gemRed = 0;
+    uint32 gemYellow = 0;
+    uint32 gemBlue = 0;
+    for (uint32 equipSlot = EQUIPMENT_SLOT_START; equipSlot < EQUIPMENT_SLOT_END; ++equipSlot)
+    {
+        auto item = player->GetItemByPos(INVENTORY_SLOT_BAG_0, equipSlot);
+        if (!item)
+        {
+            continue;
+        }
+
+        for (uint32 socketSlot = 0; socketSlot < 3; ++socketSlot)
+        {
+            auto enchantSlot = socketSlot == 0 ? SOCK_ENCHANTMENT_SLOT : socketSlot == 1 ? SOCK_ENCHANTMENT_SLOT_2 : SOCK_ENCHANTMENT_SLOT_3;
+            auto enchantId = item->GetEnchantmentId(enchantSlot);
+
+            if (!enchantId)
+            {
+                continue;
+            }
+
+            auto enchantStore = sSpellItemEnchantmentStore.LookupEntry(enchantId);
+            if (!enchantStore)
+            {
+                continue;
+            }
+
+            auto gemId = enchantStore->GemID;
+            if (!gemId)
+            {
+                continue;
+            }
+
+            ItemTemplate const* gemProto = sObjectMgr->GetItemTemplate(gemId);
+            if (!gemProto)
+            {
+                continue;
+            }
+
+            GemPropertiesEntry const* gemProperty = sGemPropertiesStore.LookupEntry(gemProto->GemProperties);
+            if (!gemProperty)
+            {
+                continue;
+            }
+
+            // Iterate over all colors, skipping meta.
+            for (uint32 i = 1; i < 4; ++i)
+            {
+                uint32 colorBitmask = 1 << i;
+                if (gemProperty->color & colorBitmask)
+                {
+                    switch (i)
+                    {
+                    case GEM_CONDITION_RED - 1:
+                        gemRed++;
+                        break;
+                    case GEM_CONDITION_YELLOW - 1:
+                        gemYellow++;
+                        break;
+                    case GEM_CONDITION_BLUE - 1:
+                        gemBlue++;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    LOG_INFO("module", "Need {} red, {} yellow, {} blue gems.", needRed, needYellow, needBlue);
+    LOG_INFO("module", "Found {} red, {} yellow, {} blue gems.", gemRed, gemYellow, gemBlue);
+
+    return (gemRed >= needRed) && (gemYellow >= needYellow) && (gemBlue >= needBlue);
+}
 
 void DynamicSocketsManager::HandleApplyEnchantment(Player* player, Item* item, EnchantmentSlot slot, bool apply, bool applyDuration, bool ignoreCondition)
 {
@@ -19,7 +134,7 @@ void DynamicSocketsManager::HandleApplyEnchantment(Player* player, Item* item, E
     if (!pEnchant)
         return;
 
-    if (!ignoreCondition && pEnchant->EnchantmentCondition && !player->EnchantmentFitsRequirements(pEnchant->EnchantmentCondition, -1))
+    if (!ignoreCondition && pEnchant->EnchantmentCondition && !IsEnchantRequirementsMet(player, pEnchant->EnchantmentCondition))
         return;
 
     if (pEnchant->requiredLevel > player->GetLevel())

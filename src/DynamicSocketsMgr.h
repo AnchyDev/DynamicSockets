@@ -6,6 +6,14 @@
 #include <vector>
 #include <unordered_map>
 
+enum ConditionGemColors
+{
+    GEM_CONDITION_META = 1,
+    GEM_CONDITION_RED = 2,
+    GEM_CONDITION_YELLOW = 3,
+    GEM_CONDITION_BLUE = 4
+};
+
 struct DynamicSocketsQueueItem
 {
     Item* Gem;
@@ -51,7 +59,9 @@ class DynamicSocketsManager
 private:
     DynamicSocketsManager() { }
 public:
+    bool IsEnchantRequirementsMet(Player* player, uint32 enchantCondition);
     void HandleApplyEnchantment(Player* player, Item* item, EnchantmentSlot slot, bool apply, bool applyDuration, bool ignoreCondition);
+
     uint32 GetMaskFromValues(std::vector<uint32> values);
     std::vector<Item*> GetItemsFromInventory(Player* player, uint32 itemClassMask, uint32 itemSubclassMask, uint32 slotStart, uint32 slotEnd);
     std::vector<Item*> GetGemsFromInventory(Player* player);
