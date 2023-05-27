@@ -63,6 +63,8 @@ public:
     DynamicSocketsQueue* GetSocketQueue();
 
     uint32 GetSocketCost(Item* item, Item* gem, EnchantmentSlot socket);
+
+    void SendNotification(Player* player, std::string message);
 public:
     static DynamicSocketsManager* GetInstance();
 };  

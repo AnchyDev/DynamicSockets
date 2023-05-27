@@ -623,6 +623,14 @@ uint32 DynamicSocketsManager::GetSocketCost(Item* item, Item* gem, EnchantmentSl
     return ((itemLevel * slotMultiplier * qualityMultiplier) * baseCost) * multiplier;
 }
 
+void DynamicSocketsManager::SendNotification(Player* player, std::string message)
+{
+    WorldPacket data(SMSG_NOTIFICATION, (message.size() + 1));
+    data << message;
+
+    player->SendDirectMessage(&data);
+}
+
 DynamicSocketsManager* DynamicSocketsManager::GetInstance()
 {
     static DynamicSocketsManager instance;

@@ -21,39 +21,39 @@ bool DynamicSocketsBeltBucklePlayerScript::CanCastItemUseSpell(Player* player, I
     Item* targetItem = targets.GetItemTarget();
     if (!targetItem)
     {
-        LOG_WARN("module", "No target item found when trying to whack a socket with Eternal Belt Buckle.");
         return false;
     }
 
     // Can only use on owned items.
     if (targetItem->GetOwnerGUID() != player->GetGUID())
     {
-        LOG_WARN("module", "Tried to whack unowned item with Eternal Belt Buckle.");
         return false;
     }
 
-    targetItem->SetEnchantment(SOCK_ENCHANTMENT_SLOT, 0, 0, 0);
+    std::vector<EnchantmentSlot> populatedSlots;
+
+    if (targetItem->GetEnchantmentId(SOCK_ENCHANTMENT_SLOT))
+        populatedSlots.push_back(SOCK_ENCHANTMENT_SLOT);
+    if (targetItem->GetEnchantmentId(SOCK_ENCHANTMENT_SLOT_2))
+        populatedSlots.push_back(SOCK_ENCHANTMENT_SLOT_2);
+    if (targetItem->GetEnchantmentId(SOCK_ENCHANTMENT_SLOT_3))
+        populatedSlots.push_back(SOCK_ENCHANTMENT_SLOT_3);
+
+    if (populatedSlots.empty())
+    {
+        sDynamicSocketsMgr->SendNotification(player, "This item does not have any sockets.");
+        return false;
+    }
+
+    uint32 randomSlot = urand(0, populatedSlots.size() - 1);
+    EnchantmentSlot enchantmentSlot = populatedSlots.at(randomSlot);
+
     if (targetItem->IsEquipped())
     {
-        sDynamicSocketsMgr->HandleApplyEnchantment(player, targetItem, SOCK_ENCHANTMENT_SLOT, false, 0, 0);
+        sDynamicSocketsMgr->HandleApplyEnchantment(player, targetItem, enchantmentSlot, false, false, false);
     }
 
-    LOG_INFO("module", "Used belt buckle item.");
-
-    player->DestroyItemCount(item->GetTemplate()->ItemId, 1, true);
-
-    ClearGossipMenuFor(player);
-    AddGossipItemFor(player, GOSSIP_ICON_CHAT, "Test", 0, 1);
-    SendGossipMenuFor(player, 441150, player->GetGUID());
+    targetItem->SetEnchantment(enchantmentSlot, 0, 0, 0);
 
     return false;
-}
-
-void DynamicSocketsBeltBucklePlayerScript::OnGossipSelect(Player* player, uint32 /*menu_id*/, uint32 /*sender*/, uint32 action)
-{
-    if (action == 1)
-    {
-        player->HandleEmoteCommand(EMOTE_ONESHOT_WORK_CHOPWOOD);
-        CloseGossipMenuFor(player);
-    }
 }
