@@ -13,8 +13,37 @@ bool DynamicSocketsPlayerScript::CanApplyEnchantment(Player* player, Item* item,
         return true;
     }
 
-    sDynamicSocketsMgr->HandleApplyEnchantment(player, item, slot, apply, applyDuration, ignoreCondition);
-    //TODO: REFRESH META GEMS
+    auto enchantId = item->GetEnchantmentId(slot);
+    if (!enchantId)
+    {
+        return true;
+    }
+
+    auto isMeta = sDynamicSocketsMgr->IsMetaGemEnchant(enchantId);
+
+    if (!isMeta)
+    {
+        sDynamicSocketsMgr->HandleApplyEnchantment(player, item, slot, apply, applyDuration, ignoreCondition);
+    }
+
+    if (isMeta && !apply)
+    {
+        auto state = sDynamicSocketsMgr->GetMetaState(player, item, slot);
+        if (state && state->State)
+        {
+            sDynamicSocketsMgr->HandleApplyEnchantment(player, item, slot, false, applyDuration, ignoreCondition);
+            sDynamicSocketsMgr->UpdateMetaState(player, item, slot, false);
+        }
+    }
+
+    // Run on the next update.
+    sDynamicSocketsMgr->GetScheduler()->Schedule(0s, [player](TaskContext context)
+    {
+        if (player && player->IsInWorld())
+        {
+            sDynamicSocketsMgr->RefreshMetaGems(player);
+        }
+    });
 
     return false;
 }

@@ -2,8 +2,20 @@
 
 #include "Config.h"
 
-bool DynamicSocketsManager::IsEnchantRequirementsMet(Player* player, uint32 enchantCondition)
+bool DynamicSocketsManager::IsEnchantRequirementsMet(Player* player, uint32 enchantId)
 {
+    if (!enchantId)
+    {
+        return true;
+    }
+
+    auto enchantStore = sSpellItemEnchantmentStore.LookupEntry(enchantId);
+    if (!enchantStore)
+    {
+        return true;
+    }
+
+    auto enchantCondition = enchantStore->EnchantmentCondition;
     if (!enchantCondition)
     {
         return true;
@@ -112,8 +124,8 @@ bool DynamicSocketsManager::IsEnchantRequirementsMet(Player* player, uint32 ench
         }
     }
 
-    LOG_INFO("module", "Need {} red, {} yellow, {} blue gems.", needRed, needYellow, needBlue);
-    LOG_INFO("module", "Found {} red, {} yellow, {} blue gems.", gemRed, gemYellow, gemBlue);
+    //LOG_INFO("module", "Need {} red, {} yellow, {} blue gems.", needRed, needYellow, needBlue);
+    //LOG_INFO("module", "Found {} red, {} yellow, {} blue gems.", gemRed, gemYellow, gemBlue);
 
     return (gemRed >= needRed) && (gemYellow >= needYellow) && (gemBlue >= needBlue);
 }
@@ -132,9 +144,6 @@ void DynamicSocketsManager::HandleApplyEnchantment(Player* player, Item* item, E
 
     SpellItemEnchantmentEntry const* pEnchant = sSpellItemEnchantmentStore.LookupEntry(enchant_id);
     if (!pEnchant)
-        return;
-
-    if (!ignoreCondition && pEnchant->EnchantmentCondition && !IsEnchantRequirementsMet(player, pEnchant->EnchantmentCondition))
         return;
 
     if (pEnchant->requiredLevel > player->GetLevel())
@@ -397,6 +406,147 @@ void DynamicSocketsManager::HandleApplyEnchantment(Player* player, Item* item, E
             player->AddEnchantmentDuration(item, slot, 0);
         }
     }
+}
+
+void DynamicSocketsManager::RefreshMetaGems(Player* player)
+{
+    for (uint32 equipSlot = EQUIPMENT_SLOT_START; equipSlot < EQUIPMENT_SLOT_END; ++equipSlot)
+    {
+        auto item = player->GetItemByPos(INVENTORY_SLOT_BAG_0, equipSlot);
+        if (!item)
+        {
+            continue;
+        }
+
+        for (uint32 socketSlot = 0; socketSlot < 3; ++socketSlot)
+        {
+            auto enchantSlot = socketSlot == 0 ? SOCK_ENCHANTMENT_SLOT : socketSlot == 1 ? SOCK_ENCHANTMENT_SLOT_2 : SOCK_ENCHANTMENT_SLOT_3;
+            auto enchantId = item->GetEnchantmentId(enchantSlot);
+
+            if (!enchantId)
+            {
+                continue;
+            }
+
+            if (!IsMetaGemEnchant(enchantId))
+            {
+                continue;
+            }
+
+            LOG_INFO("module", "Found item {} with meta gem in slot {}.", item->GetTemplate()->Name1, socketSlot);
+
+            DynamicSocketsMetaState* metaState = sDynamicSocketsMgr->GetMetaState(player, item, enchantSlot);
+            if (!metaState)
+            {
+                LOG_WARN("module", "Failed to find meta state for player {} on item {} for slot {}.", player->GetName(), item->GetTemplate()->Name1, socketSlot);
+                continue;
+            }
+
+            bool state = metaState->State;
+            bool result = IsEnchantRequirementsMet(player, enchantId);
+
+            LOG_INFO("module", "Meta gem has state {}, meets requirements: {}", state, result);
+
+            if (state != result)
+            {
+                sDynamicSocketsMgr->UpdateMetaState(player, item, enchantSlot, result);
+                HandleApplyEnchantment(player, item, enchantSlot, result, true, false);
+
+                LOG_INFO("module", "Updating meta gem state to {}.", result);
+            }
+        }
+    }
+}
+
+bool DynamicSocketsManager::IsMetaGemEnchant(uint32 enchantId)
+{
+    auto enchantStore = sSpellItemEnchantmentStore.LookupEntry(enchantId);
+    if (!enchantStore)
+    {
+        return false;
+    }
+
+    auto gemId = enchantStore->GemID;
+    if (!gemId)
+    {
+        return false;
+    }
+
+    ItemTemplate const* gemProto = sObjectMgr->GetItemTemplate(gemId);
+    if (!gemProto)
+    {
+        return false;
+    }
+
+    if (gemProto->Class != ITEM_CLASS_GEM)
+    {
+        return false;
+    }
+
+    if (gemProto->SubClass != ITEM_SUBCLASS_GEM_META)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+DynamicSocketsMetaState* DynamicSocketsManager::GetMetaState(Player* player, Item* item, EnchantmentSlot enchantSlot)
+{
+    auto it = _metaStates.find(player);
+    if (it == _metaStates.end())
+    {
+        std::vector<DynamicSocketsMetaState> states;
+
+        DynamicSocketsMetaState state;
+        state.Item = item;
+        state.EnchantSlot = enchantSlot;
+        state.State = false;
+
+        states.push_back(state);
+
+        it = _metaStates.emplace(player, states).first;
+
+        LOG_INFO("module", "No states found, creating..");
+    }
+
+    auto states = &it->second;
+    if (states->empty())
+    {
+        LOG_INFO("module", "No states found.");
+        return nullptr;
+    }
+
+    LOG_INFO("module", "Looking for item GUID: {}", item->GetGUID().GetRawValue());
+    for (auto stateIt = states->begin(); stateIt < states->end(); ++stateIt)
+    {
+        LOG_INFO("module", "Item GUID: {}", stateIt->Item->GetGUID().GetRawValue());
+        if (stateIt->Item->GetGUID() == item->GetGUID() &&
+            stateIt->EnchantSlot == enchantSlot)
+        {
+            LOG_INFO("module", "Found state {}.", stateIt->State);
+            return &(*stateIt);
+        }
+    }
+
+    LOG_INFO("module", "No meta state found.");
+    return nullptr;
+}
+
+void DynamicSocketsManager::UpdateMetaState(Player* player, Item* item, EnchantmentSlot enchantSlot, bool newState)
+{
+    auto state = GetMetaState(player, item, enchantSlot);
+
+    if (!state)
+    {
+        LOG_INFO("module", "Failed to update state, no meta state found.");
+        return;
+    }
+
+    LOG_INFO("module", "Before: {}", state->State);
+    state->Item = item;
+    state->State = newState;
+    LOG_INFO("module", "After: {}", state->State);
 }
 
 uint32 DynamicSocketsManager::GetMaskFromValues(std::vector<uint32> values)
@@ -751,4 +901,9 @@ DynamicSocketsManager* DynamicSocketsManager::GetInstance()
     static DynamicSocketsManager instance;
 
     return &instance;
+}
+
+TaskScheduler* DynamicSocketsManager::GetScheduler()
+{
+    return &_scheduler;
 }

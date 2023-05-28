@@ -2,6 +2,7 @@
 #define MODULE_DYNAMIC_SOCKETS_MGR_H
 
 #include "Player.h"
+#include "TaskScheduler.h"
 
 #include <vector>
 #include <unordered_map>
@@ -12,6 +13,13 @@ enum ConditionGemColors
     GEM_CONDITION_RED = 2,
     GEM_CONDITION_YELLOW = 3,
     GEM_CONDITION_BLUE = 4
+};
+
+struct DynamicSocketsMetaState
+{
+    Item* Item;;
+    EnchantmentSlot EnchantSlot;
+    bool State;
 };
 
 struct DynamicSocketsQueueItem
@@ -59,8 +67,13 @@ class DynamicSocketsManager
 private:
     DynamicSocketsManager() { }
 public:
-    bool IsEnchantRequirementsMet(Player* player, uint32 enchantCondition);
+    bool IsEnchantRequirementsMet(Player* player, uint32 enchantId);
     void HandleApplyEnchantment(Player* player, Item* item, EnchantmentSlot slot, bool apply, bool applyDuration, bool ignoreCondition);
+
+    void RefreshMetaGems(Player* player);
+    bool IsMetaGemEnchant(uint32 enchantId);
+    DynamicSocketsMetaState* GetMetaState(Player* player, Item* item, EnchantmentSlot enchantSlot);
+    void UpdateMetaState(Player* player, Item* item, EnchantmentSlot enchantSlot, bool newState);
 
     uint32 GetMaskFromValues(std::vector<uint32> values);
     std::vector<Item*> GetItemsFromInventory(Player* player, uint32 itemClassMask, uint32 itemSubclassMask, uint32 slotStart, uint32 slotEnd);
@@ -80,6 +93,11 @@ public:
     uint32 GetSocketCost(Item* item, Item* gem, EnchantmentSlot socket);
 
     void SendNotification(Player* player, std::string message);
+
+    TaskScheduler* GetScheduler();
+private:
+    TaskScheduler _scheduler;
+    std::unordered_map<Player*, std::vector<DynamicSocketsMetaState>> _metaStates;
 public:
     static DynamicSocketsManager* GetInstance();
 };  
