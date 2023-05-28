@@ -10,6 +10,7 @@ public:
 
 private:
     bool CanApplyEnchantment(Player* player, Item* item, EnchantmentSlot& slot, bool& apply, bool& applyDuration, bool& ignoreCondition) override;
+    void OnLogout(Player* /*player*/) override;
 };
 
 #endif // MODULE_DYNAMIC_SOCKETS_PLAYER_SCRIPT_H

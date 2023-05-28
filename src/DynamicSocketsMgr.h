@@ -74,6 +74,7 @@ public:
     bool IsMetaGemEnchant(uint32 enchantId);
     DynamicSocketsMetaState* GetMetaState(Player* player, Item* item, EnchantmentSlot enchantSlot);
     void UpdateMetaState(Player* player, Item* item, EnchantmentSlot enchantSlot, bool newState);
+    void CleanMetaStates(Player* player);
 
     uint32 GetMaskFromValues(std::vector<uint32> values);
     std::vector<Item*> GetItemsFromInventory(Player* player, uint32 itemClassMask, uint32 itemSubclassMask, uint32 slotStart, uint32 slotEnd);

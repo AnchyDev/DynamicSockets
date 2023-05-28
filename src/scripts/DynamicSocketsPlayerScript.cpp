@@ -47,3 +47,13 @@ bool DynamicSocketsPlayerScript::CanApplyEnchantment(Player* player, Item* item,
 
     return false;
 }
+
+void DynamicSocketsPlayerScript::OnLogout(Player* player)
+{
+    if (!player)
+    {
+        return;
+    }
+
+    sDynamicSocketsMgr->CleanMetaStates(player);
+}

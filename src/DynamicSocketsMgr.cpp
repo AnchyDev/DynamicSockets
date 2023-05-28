@@ -549,6 +549,17 @@ void DynamicSocketsManager::UpdateMetaState(Player* player, Item* item, Enchantm
     LOG_INFO("module", "After: {}", state->State);
 }
 
+void DynamicSocketsManager::CleanMetaStates(Player* player)
+{
+    auto it = _metaStates.find(player);
+    if (it == _metaStates.end())
+    {
+        return;
+    }
+
+    _metaStates.erase(it);
+}
+
 uint32 DynamicSocketsManager::GetMaskFromValues(std::vector<uint32> values)
 {
     uint32 mask = 0;
